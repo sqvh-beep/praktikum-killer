@@ -1,0 +1,10 @@
+streamlit
+sympy
+matplotlib
+numpy
+SciencePlots
+pandas
+scipy
+math
+openpyxl
+scienceplots
