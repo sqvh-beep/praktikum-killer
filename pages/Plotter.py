@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
 import pandas as pd
-from scipy.optimize import curve_fit
 import math
+import io
+import csv
 
 # Funktionen
 def latify(equation:str) -> str:
@@ -26,7 +27,7 @@ col_1, col_2 = st.columns(2)
 X = None
 Y = None
 
-var_x = "x"
+var_x = 'x'
 var_y = "y"
 
 # Einstellungsspalte
@@ -34,9 +35,47 @@ with col_1:
     #title
     st.subheader("CSV Upload")
 
-    #csv reader
-    csv = st.file_uploader("Lade deine Messdaten hoch", type=["CSV"])
     
+    csvf = st.file_uploader("Lade deine Messdaten hoch", type=["CSV"])
+
+    if csvf:
+        # --------------------------------------- CSV READER S (CHATGPT)--------------------------------------------------
+        raw_data = csvf.read()
+        
+        # 1. Automatisches Durchprobieren der häufigsten Encodings, damit es keine Decode-Errors gibt
+        text_data = ""
+        for enc in ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']:
+            try:
+                text_data = raw_data.decode(enc)
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        # Fallback, falls alle Encodings scheitern (ignoriert kaputte Zeichen)
+        if not text_data:
+            text_data = raw_data.decode('utf-8', errors='replace')
+            
+        # 2. Automatisches Erkennen des Trennzeichens (Sniffer)
+        try:
+            # Schaut sich die ersten paar Tausend Zeichen an, um das Trennzeichen zu erraten
+            dialect = csv.Sniffer().sniff(text_data[:4096])
+            sep = dialect.delimiter
+        except Exception:
+            sep = ',' # Wenn er nichts erkennt, nimm Standard-Komma
+
+        # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
+        try:
+            df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip')
+        except pd.errors.EmptyDataError:
+            st.error("Die hochgeladene Datei ist leer.")
+            st.stop()
+        except Exception as e:
+            st.error(f"Unbekannter Fehler beim Lesen der CSV: {e}")
+            st.stop()
+        # --------------------------------------- CSV READER E (CHATGPT)--------------------------------------------------
+
+
+
     # plot customizer
     name = st.text_input("Name des Plots")
     x_label = st.text_input("Label X")
@@ -45,14 +84,14 @@ with col_1:
     var_y = st.text_input("Gebe deine $y$-Variable an ($A$, $F$, $R$, etc.)")
     if var_x == "x" or var_x == "":
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist $x$):")
+        var_x = 'x'
     else:
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):")
     
 
     # csv knaller // options für messwerte
     with st.expander("Plot von Messwerten"):
-        if csv:
-            df = pd.read_csv(csv, encoding='utf-8')
+        if csvf:
             n_spalten = len(df.iloc[0])
             st.write(df)
             st.write("Gebe die Spalten an die geplottet werden sollen")
@@ -83,7 +122,7 @@ with col_1:
         
 
     # Achsendefinition2
-    if csv:
+    if csvf:
         x_Achse = df[df.columns[X-1]].values
         y_Achse = df[df.columns[Y-1]].values
         if fehler:
@@ -98,7 +137,7 @@ with col_1:
             under_x = st.number_input("Untere $x$-Grenze")
             upper_x = st.number_input("Obere $x$-Grenze")
         else:
-            if csv:
+            if csvf:
                 under_x = x_Achse[0]
                 upper_x = x_Achse[-1]
             else:
@@ -117,7 +156,7 @@ with col_1:
 
     #calculator
     # regression calc
-    if csv and regression and deg is not None:
+    if csvf and regression and deg is not None:
         r_matrix = np.polyfit(x_Achse, y_Achse, deg=deg, cov=True)
         slope = r_matrix[0]
         slope_rd = np.round(slope, rd)
@@ -135,7 +174,7 @@ with col_1:
                 formel_latex_rounded += fr"+ ({slope_rd[i]} \pm {round_up(f[i], rd)}) \cdot {var_x}"
             else:
                 formel_latex_rounded += fr"+ ({slope_rd[i]} \pm {round_up(f[i], rd)}) \cdot {var_x}^{{{n-1}}}"
-        
+    
 
     # Plot
     plt.style.use(['science', 'grid'])    
@@ -145,7 +184,7 @@ with col_1:
     ax.set_ylabel(y_Label)
 
     # Messwerte Plot
-    if csv:
+    if csvf:
         try:
             ax.errorbar(x_Achse, y_Achse, 
                         yerr=y_error, fmt='x', 
@@ -162,7 +201,7 @@ with col_1:
         plt.plot(x_fit, y_xis, label=fr'${latify(funke)}$')
 
     # fit plot
-    if csv:
+    if csvf:
         if loglog:
             ax.loglog(x_Achse, y_Achse, label='LogLog-Scale Plot der Messwerte')    
         if histo:
@@ -176,12 +215,12 @@ with col_1:
 # Outputspalte
 with col_2:
     ax.legend()
-    if fkt or csv:
+    if fkt or csvf:
         st.subheader("Plot")
         st.pyplot(fig)
         if not X is None and not Y is None and X==Y:
             st.warning(fr"$x$ und $y$ Spaltenzahl stimmen überein, du plottest gerade $z$ gegen $z$ ($z \in header(CSV)$)")
-        if csv and regression:
+        if csvf and regression:
                 if deg is not None:
                     st.subheader(fr"$\LaTeX$-Formel")
                     st.latex(formel_latex_rounded)
