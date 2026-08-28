@@ -4,42 +4,61 @@ import sympy as sp
 import math
 import numpy as np
 import openpyxl
+import io
+import csv
 
 st.set_page_config(layout="wide")
 
 st.title("Transformierung der Messwerte")
 st.text("Transformiere deine Spalten für deine Messwerte, indem du Rechenoperationen für die jeweilige Spalte auswählst.", text_alignment="center")
 
-uploaded_file = st.file_uploader("Lade deine CSV- oder Excel-Datei hoch", type=["CSV", "xlsx"])
+uploaded_file = st.file_uploader("Lade deine CSV-Datei hoch", type=["CSV"])
 st.divider()
 
 col1, col2, col3 = st.columns(3)
 
-if not uploaded_file == None:
-    try:
-        df = pd.read_excel(uploaded_file)
-        df1 = df.copy()
-    except ValueError:
+if not uploaded_file is None:
+    # --------------------------------------- CSV READER S (CHATGPT)--------------------------------------------------
+    raw_data = uploaded_file.read()
+    
+    # 1. Automatisches Durchprobieren der häufigsten Encodings, damit es keine Decode-Errors gibt
+    text_data = ""
+    for enc in ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']:
         try:
-            df = pd.read_csv(uploaded_file, encoding='utf-8')
-            df1 = df.copy()
+            text_data = raw_data.decode(enc)
+            break
         except UnicodeDecodeError:
-            uploaded_file.seek(0) 
-            df = pd.read_csv(uploaded_file, encoding='latin-1', sep=';')
-            df1 = df.copy()
+            continue
+    
+    # Fallback, falls alle Encodings scheitern (ignoriert kaputte Zeichen)
+    if not text_data:
+        text_data = raw_data.decode('utf-8', errors='replace')
+        
+    # 2. Automatisches Erkennen des Trennzeichens (Sniffer)
+    try:
+        # Schaut sich die ersten paar Tausend Zeichen an, um das Trennzeichen zu erraten
+        dialect = csv.Sniffer().sniff(text_data[:4096])
+        sep = dialect.delimiter
+    except Exception:
+        sep = ',' # Wenn er nichts erkennt, nimm Standard-Komma
 
-        for n in df1.columns:
-            try:
-                df1[n] = pd.to_numeric(df1[n].str.replace(",", ".", regex=False))
-            except AttributeError:
-                pass
-
+    # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
+    try:
+        df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip')
+    except pd.errors.EmptyDataError:
+        st.error("Die hochgeladene Datei ist leer.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Unbekannter Fehler beim Lesen der CSV: {e}")
+        st.stop()
+    # --------------------------------------- CSV READER E (CHATGPT)--------------------------------------------------
+    
 
     with col1:
 
         anzahl = st.number_input("Gebe die Spaltenzahl an, die transformiert werden soll: (Hinweis: Du kannst nicht deine Fehlerspalte transformieren (siehe Fehleraddierer))", min_value=1, max_value=len(df.iloc[0]), step=1)
 
-        new = df1[df1.columns[anzahl-1]]
+        new = df[df.columns[anzahl-1]]
 
         selection = st.segmented_control("Transform", ["Addition", "Multiplikation"], selection_mode="single")
 
@@ -68,7 +87,7 @@ if not uploaded_file == None:
             
     with col2:
         st.subheader("Inertialliste")
-        st.write(df1)
+        st.write(df)
 
     with col3:
 
@@ -81,7 +100,7 @@ if not uploaded_file == None:
             z = transformation * z
         
         if not fehlerspalte == "":
-            y = df1[df1.columns[fehlerspalte-1]]
+            y = df[df.columns[fehlerspalte-1]]
             y = np.sqrt((np.square(y) + s_fehler_wert**2))
 
         if more == "None":
@@ -100,18 +119,18 @@ if not uploaded_file == None:
 
     if 'z' in locals():
         
-        df1[spalte] = z
+        df[spalte] = z
 
         if 'y' in locals():
-            df1[header[fehlerspalte-1]] = y
+            df[header[fehlerspalte-1]] = y
 
         with col3:
-            st.write(df1)
+            st.write(df)
 
-            def convert_for_download(df1):
-                return df1.to_csv(index=False).encode("utf-8")
+            def convert_for_download(df):
+                return df.to_csv(index=False).encode("utf-8")
 
-            csv = convert_for_download(df1)
+            csv = convert_for_download(df)
 
             st.download_button(
                 label="Download CSV",
