@@ -19,19 +19,5 @@ st.markdown(
         Frohes Schaffen!
     """
     )
-st.subheader("Wichtiger Hinweis")
-st.markdown(
-        fr"""
-        Achte darauf, dass deine Daten korrekt sind und, dass vor allem das Dateiformat stimmt. Es gibt hier einen Checker unten, welcher prüft, ob deine Dateien
-        für das Tool korrekt sind. Es ist wichtig diese Vorschriften einzuhalten, da sonst Fehlerhafte Ausgaben resultieren werden. Dies liegt daran, dass es in Microsoft-Office
-        selbst beim gleichen Dateientyp wie .CSV mindestens 3 verschiedene Formate gibt (dasselbe gilt für .xlsx), welche in der Auswertung brutale Fehler verursachen 
-        (nur Syntaxfehler, keine Sorge). Da ich dieses Exception-Handling noch machen muss (das ist so lästig), hab ich hier einen einfachen Checker gebaut, der prüft ob deine
-        Dateien kompatibel sind.
-    """
-)
-file_ex = st.file_uploader("Lade deine zu prüfende Excel-Datei hoch", type=['xlsx'])
-if file_ex:
-    st.text(type(file_ex))
-    df = pd.read_excel(file_ex)
-    st.success("Deine Datei ist funktionierend")
+
     
