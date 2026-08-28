@@ -2,9 +2,7 @@ streamlit
 sympy
 matplotlib
 numpy
-SciencePlots
+scienceplots
 pandas
 scipy
-math
 openpyxl
-scienceplots
