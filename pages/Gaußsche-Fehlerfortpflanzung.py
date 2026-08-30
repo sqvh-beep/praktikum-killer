@@ -43,6 +43,7 @@ if formel:
         st.subheader("Werte")
     with col2:
         st.subheader("Fehler")
+
     for f in Liste:
         with col1:
             number = st.text_input(fr"Gebe deinen Wert für ${f}$ ein:")
@@ -51,19 +52,18 @@ if formel:
             elif number == "e":
                 number = math.e
             try:
-                Werte_Dict[f] = float(number)
+                Werte_Dict[f] = float(sp.sympify(number))
             except:
                 pass
                 
-
         with col2:
             number2 = st.text_input(fr"Gebe deinen Fehler für ${f}$ ein:")
             if number2 == "pi":
-                number2 == math.pi
+                number2 = math.pi
             elif number2 == "e":
-                number2 == math.e
+                number2 = math.e
             try:
-                Fehler_Dict[f] = float(number2)
+                Fehler_Dict[f] = float(sp.sympify(number2))
             except:
                 pass
                 
