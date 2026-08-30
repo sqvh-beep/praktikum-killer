@@ -30,11 +30,12 @@ Y = None
 var_x = 'x'
 var_y = "y"
 
+anzahl_new_plots = 0
+
 # Einstellungsspalte
 with col_1:
     #title
     st.subheader("CSV Upload")
-
     
     csvf = st.file_uploader("Lade deine Messdaten hoch", type=["CSV"])
 
@@ -65,7 +66,7 @@ with col_1:
 
         # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
         try:
-            df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip')
+            df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip', decimal=',')
         except pd.errors.EmptyDataError:
             st.error("Die hochgeladene Datei ist leer.")
             st.stop()
@@ -87,7 +88,6 @@ with col_1:
         var_x = 'x'
     else:
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):")
-    
 
     # csv knaller // options für messwerte
     with st.expander("Plot von Messwerten"):
@@ -96,23 +96,44 @@ with col_1:
             st.write(df)
             st.write("Gebe die Spalten an die geplottet werden sollen")
 
-            #Achsendefinition
+            #Achsendefinition-Main Plot
             X = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1)
             Y = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1)
-            st.divider()
             fehler = st.checkbox("Willst $y$-Fehler Plotten?")
             if fehler:
                 y_err = st.number_input("Spaltenzahl für $y$-Fehler", min_value=1, max_value=n_spalten, step=1)
-                st.divider()
             else:
                 y_error = None
-
+            
             # more options
             regression = st.checkbox("Regression Plotten")
             if regression:
                 deg = st.number_input("Gebe den Grad der Regression an", min_value=1, step=1, max_value=5)
                 rd = st.number_input("Gebe die Rundung an", min_value=0, step=1)
+
+            st.divider()
+
+
+            more_plots = st.button("Mehr Messwerte plotten")
+            
+            new_plots = []
+            if more_plots:
                 st.divider()
+                anzahl_new_plots += 1
+                for i in range(0,anzahl_new_plots):
+                    new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i)
+                    new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+1)
+                    fehler_new = st.checkbox("Willst $y$-Fehler Plotten?", key=i+4)
+                    if fehler_new:
+                        y_err_new = st.number_input("Spaltenzahl für $y$-Fehler", min_value=1, max_value=n_spalten, step=1, key=i+2)
+                    else:
+                        y_err_new = None
+                    lossenden = st.button("Bestätigen")
+                    if lossenden:
+                        new_plots.append([new_x_plot, new_y_plot, y_err_new])
+                st.write(new_plots)
+            
+            st.divider()
             loglog = st.checkbox("LogLog-Scale")
             histo = st.checkbox("Histogramm darstellung")
 
@@ -182,6 +203,7 @@ with col_1:
     ax.set_title(name)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_Label)
+    
 
     # Messwerte Plot
     if csvf:
