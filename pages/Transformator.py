@@ -44,7 +44,7 @@ if not uploaded_file is None:
 
     # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
     try:
-        df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip')
+        df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip', decimal=',')
     except pd.errors.EmptyDataError:
         st.error("Die hochgeladene Datei ist leer.")
         st.stop()
