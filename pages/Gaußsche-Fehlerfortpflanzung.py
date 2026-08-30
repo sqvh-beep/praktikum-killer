@@ -11,14 +11,14 @@ def round_up(k, decimals = 0):
 
 st.title("Gaußsche-Fehlerfortpflanzung")
 st.subheader("Formeleingabe")
-formel = st.text_input("Gib deine Formel ein:")
+formel = st.text_input(fr"Gib deine Formel ein:")
 
 
 if formel:
     Werte_Dict = {}
     Fehler_Dict = {}
 
-    Gleichung = sp.parse_expr(formel, transformations='all', local_dict={'I': sp.Symbol('I')})
+    Gleichung = sp.parse_expr(formel, transformations='all', local_dict={'I': sp.Symbol('I'), 'e': sp.Symbol('E')})
 
     st.latex(latify(Gleichung))
     st.divider()
@@ -47,23 +47,15 @@ if formel:
     for f in Liste:
         with col1:
             number = st.text_input(fr"Gebe deinen Wert für ${f}$ ein:")
-            if number == "pi":
-                number = math.pi
-            elif number == "e":
-                number = math.e
             try:
-                Werte_Dict[f] = float(sp.sympify(number))
+                Werte_Dict[f] = float(sp.sympify(number.replace(",", ".")))
             except:
                 pass
                 
         with col2:
             number2 = st.text_input(fr"Gebe deinen Fehler für ${f}$ ein:")
-            if number2 == "pi":
-                number2 = math.pi
-            elif number2 == "e":
-                number2 = math.e
             try:
-                Fehler_Dict[f] = float(sp.sympify(number2))
+                Fehler_Dict[f] = float(sp.sympify(number2.replace(",", ".")))
             except:
                 pass
                 
