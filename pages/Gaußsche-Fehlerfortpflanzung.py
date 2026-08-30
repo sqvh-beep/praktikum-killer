@@ -18,7 +18,7 @@ if formel:
     Werte_Dict = {}
     Fehler_Dict = {}
 
-    Gleichung = sp.parse_expr(formel, transformations='all', local_dict={'I': sp.Symbol('I'), 'e': sp.Symbol('E')})
+    Gleichung = sp.parse_expr(formel, transformations='all', local_dict={'I': sp.Symbol('I'), 'E': sp.Symbol('E'), 'e': sp.E})
 
     st.latex(latify(Gleichung))
     st.divider()
@@ -48,14 +48,14 @@ if formel:
         with col1:
             number = st.text_input(fr"Gebe deinen Wert für ${f}$ ein:")
             try:
-                Werte_Dict[f] = float(sp.sympify(number.replace(",", ".")))
+                Werte_Dict[f] = float(sp.sympify(number.replace(",", ".").replace("e", "E")))
             except:
                 pass
                 
         with col2:
             number2 = st.text_input(fr"Gebe deinen Fehler für ${f}$ ein:")
             try:
-                Fehler_Dict[f] = float(sp.sympify(number2.replace(",", ".")))
+                Fehler_Dict[f] = float(sp.sympify(number2.replace(",", ".").replace("e", "E")))
             except:
                 pass
                 
