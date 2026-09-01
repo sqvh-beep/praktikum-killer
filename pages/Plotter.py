@@ -30,51 +30,60 @@ Y = None
 var_x = 'x'
 var_y = "y"
 
-anzahl_new_plots = 0
+ultra_plots = []
+anzahl_new_plots = None
 
 # Einstellungsspalte
 with col_1:
     #title
     st.subheader("CSV Upload")
     
-    csvf = st.file_uploader("Lade deine Messdaten hoch", type=["CSV"])
+    csvf = st.file_uploader("Lade deine Messdaten hoch", type=["CSV"], accept_multiple_files=True)
+
+    dataframes = []
 
     if csvf:
         # --------------------------------------- CSV READER S (CHATGPT)--------------------------------------------------
-        raw_data = csvf.read()
-        
-        # 1. Automatisches Durchprobieren der häufigsten Encodings, damit es keine Decode-Errors gibt
-        text_data = ""
-        for enc in ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']:
-            try:
-                text_data = raw_data.decode(enc)
-                break
-            except UnicodeDecodeError:
-                continue
-        
-        # Fallback, falls alle Encodings scheitern (ignoriert kaputte Zeichen)
-        if not text_data:
-            text_data = raw_data.decode('utf-8', errors='replace')
+        namensliste = []
+        for n in csvf:
+            raw_data = n.read()
             
-        # 2. Automatisches Erkennen des Trennzeichens (Sniffer)
-        try:
-            # Schaut sich die ersten paar Tausend Zeichen an, um das Trennzeichen zu erraten
-            dialect = csv.Sniffer().sniff(text_data[:4096])
-            sep = dialect.delimiter
-        except Exception:
-            sep = ',' # Wenn er nichts erkennt, nimm Standard-Komma
+            # 1. Automatisches Durchprobieren der häufigsten Encodings, damit es keine Decode-Errors gibt
+            text_data = ""
+            for enc in ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']:
+                try:
+                    text_data = raw_data.decode(enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            # Fallback, falls alle Encodings scheitern (ignoriert kaputte Zeichen)
+            if not text_data:
+                text_data = raw_data.decode('utf-8', errors='replace')
+                
+            # 2. Automatisches Erkennen des Trennzeichens (Sniffer)
+            try:
+                # Schaut sich die ersten paar Tausend Zeichen an, um das Trennzeichen zu erraten
+                dialect = csv.Sniffer().sniff(text_data[:4096])
+                sep = dialect.delimiter
+            except Exception:
+                sep = ',' # Wenn er nichts erkennt, nimm Standard-Komma
 
-        # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
-        try:
-            df = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip', decimal=',')
-        except pd.errors.EmptyDataError:
-            st.error("Die hochgeladene Datei ist leer.")
-            st.stop()
-        except Exception as e:
-            st.error(f"Unbekannter Fehler beim Lesen der CSV: {e}")
-            st.stop()
-        # --------------------------------------- CSV READER E (CHATGPT)--------------------------------------------------
-
+            # 3. Einlesen in Pandas (on_bad_lines='skip' verhindert Abstürze bei kaputten Reihen)
+            try:
+                lf = pd.read_csv(io.StringIO(text_data), sep=sep, on_bad_lines='skip', decimal=',')
+            except pd.errors.EmptyDataError:
+                st.error("Die hochgeladene Datei ist leer.")
+                st.stop()
+            except Exception as e:
+                st.error(f"Unbekannter Fehler beim Lesen der CSV: {n}{e}")
+                st.stop()
+            try:
+                dataframes.append(lf)
+            except:
+                pass
+            namensliste.append(n.name)
+            # --------------------------------------- CSV READER E (CHATGPT)-------------------------------------------------
 
 
     # plot customizer
@@ -83,6 +92,8 @@ with col_1:
     y_Label = st.text_input("Label Y")
     var_x = st.text_input("Gebe deine $x$-Variable an ($t$, $m$, $f$, etc.)")
     var_y = st.text_input("Gebe deine $y$-Variable an ($A$, $F$, $R$, etc.)")
+    if var_y == "" or var_y == "y":
+        var_y = 'y'
     if var_x == "x" or var_x == "":
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist $x$):")
         var_x = 'x'
@@ -90,66 +101,70 @@ with col_1:
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):")
 
     # csv knaller // options für messwerte
+
     with st.expander("Plot von Messwerten"):
         if csvf:
-            n_spalten = len(df.iloc[0])
-            st.write(df)
-            st.write("Gebe die Spalten an die geplottet werden sollen")
+            for z, df in enumerate(dataframes):
+                name_messung = namensliste[z]
+                with st.expander(fr'Messwerte für "{name_messung}"'):
+                    n_spalten = len(df.iloc[0])
 
-            #Achsendefinition-Main Plot
-            X = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1)
-            Y = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1)
-            fehler = st.checkbox("Willst $y$-Fehler Plotten?")
-            if fehler:
-                y_err = st.number_input("Spaltenzahl für $y$-Fehler", min_value=1, max_value=n_spalten, step=1)
-            else:
-                y_error = None
-            
-            # more options
-            regression = st.checkbox("Regression Plotten")
-            if regression:
-                deg = st.number_input("Gebe den Grad der Regression an", min_value=1, step=1, max_value=5)
-                rd = st.number_input("Gebe die Rundung an", min_value=0, step=1)
+                    df_shower = st.checkbox("CSV zeigen", key=z+123999999)
+                    if df_shower:
+                        df = st.data_editor(df) 
+                    
+                    anzahl_new_plots = st.number_input("Gebe an, wie viele Kurven du brauchst:", min_value=1, max_value=n_spalten, step=1, key=z+1231123)
+                    
+                    new_plots = []
 
-            st.divider()
+                    if anzahl_new_plots is not None:
+                        for i in range(0,anzahl_new_plots):
+                            st.divider()
+                            name_plot = st.text_input("Gebe den Namen der Messung an", "Messung", key=i+z+19283178318)
+                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot"], selection_mode="single", key=i+z+12318317009)
+                            st.write("Gebe die Spalten an die geplottet werden sollen")
+                            new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i+z+1231)
+                            new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+z+15512)
+                            fehler_new = st.checkbox("Willst $y$-Fehler Plotten?", key=i+z+1203718371)
+                            if fehler_new:
+                                y_err_new = st.number_input("Spaltenzahl für $y$-Fehler", min_value=1, max_value=n_spalten, step=1, key=i+z+12398713)
+                            else:
+                                y_err_new = None
+                            
+                            regression = st.checkbox("Regression Plotten", key=i+z+1387221837138)
+                            if regression:
+                                deg = st.number_input("Gebe den Grad der Regression an", min_value=1, step=1, max_value=5, key=i+z+12381893132131)
+                                rd = st.number_input("Gebe die Rundung an", min_value=0, step=1, key=i+z+13213173817318)
+                            else:
+                                deg = None
+                                rd = None
+                            
+                            new_plots.append([new_x_plot, new_y_plot, y_err_new, deg, rd, name_plot, point_or_line])
 
+                    ultra_plots.append(new_plots)
+            loglog = st.checkbox("LogLog-Scale", key=123871738138717380218073)
+            histo = st.checkbox("Histogramm darstellung", key=1983218967378193728913879)
 
-            more_plots = st.button("Mehr Messwerte plotten (funktioniert noch nicht)")
-            
-            new_plots = []
-            if more_plots:
-                st.divider()
-                anzahl_new_plots += 1
-                for i in range(0,anzahl_new_plots):
-                    new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i)
-                    new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+1)
-                    fehler_new = st.checkbox("Willst $y$-Fehler Plotten?", key=i+4)
-                    if fehler_new:
-                        y_err_new = st.number_input("Spaltenzahl für $y$-Fehler", min_value=1, max_value=n_spalten, step=1, key=i+2)
-                    else:
-                        y_err_new = None
-                    lossenden = st.button("Bestätigen")
-                    if lossenden:
-                        new_plots.append([new_x_plot, new_y_plot, y_err_new])
-                st.write(new_plots)
-            
-            st.divider()
-            loglog = st.checkbox("LogLog-Scale")
-            histo = st.checkbox("Histogramm darstellung")
-
-            #calc
         else:
             st.warning("Lade erst eine CSV Datei hoch")
         
 
     # Achsendefinition2
     if csvf:
-        x_Achse = df[df.columns[X-1]].values
-        y_Achse = df[df.columns[Y-1]].values
-        if fehler:
-            y_error = df[df.columns[y_err-1]].values
-
+        New_Plot_Arrays = []
+        all_plots_config = [] 
         
+        for ultra, current_df in zip(ultra_plots, dataframes):
+            for n_plot in ultra:
+                new_x_achse = current_df[current_df.columns[n_plot[0]-1]].values
+                new_y_achse = current_df[current_df.columns[n_plot[1]-1]].values
+                if n_plot[2] is not None:
+                    new_y_error = current_df[current_df.columns[n_plot[2]-1]].values
+                else:
+                    new_y_error = None
+                
+                New_Plot_Arrays.append([new_x_achse, new_y_achse, new_y_error])
+                all_plots_config.append(n_plot)
     # Limits
     with st.expander("Grenzeinstellungen"):
         # x-Achse
@@ -159,8 +174,13 @@ with col_1:
             upper_x = st.number_input("Obere $x$-Grenze")
         else:
             if csvf:
-                under_x = x_Achse[0]
-                upper_x = x_Achse[-1]
+                comparer_min = []
+                comparer_max = []
+                for i in New_Plot_Arrays:
+                    comparer_min.append(min(i[0]))
+                    comparer_max.append(max(i[0]))
+                under_x = min(comparer_min)
+                upper_x = max(comparer_max)
             else:
                 under_x = 0
                 upper_x = 10
@@ -175,26 +195,7 @@ with col_1:
             upper_y = None
             under_y = None
 
-    #calculator
-    # regression calc
-    if csvf and regression and deg is not None:
-        r_matrix = np.polyfit(x_Achse, y_Achse, deg=deg, cov=True)
-        slope = r_matrix[0]
-        slope_rd = np.round(slope, rd)
-        f = np.sqrt(np.diag(r_matrix[1])) 
 
-        #formula
-        if deg == 1:
-            formel_latex_rounded = fr"{var_y}({var_x}) \approx ({slope_rd[0]} \pm {round_up(f[0], rd)}) \cdot {var_x}"
-        else:
-            formel_latex_rounded = fr"{var_y}({var_x}) \approx ({slope_rd[0]} \pm {round_up(f[0], rd)}) \cdot {var_x}^{{{deg}}}"
-        for i,n in zip(range(1,deg+1), reversed(range(0,deg+1))):
-            if n-1 == 0:
-                formel_latex_rounded += fr"+ ({slope_rd[i]} \pm {round_up(f[i], rd)})"   
-            elif n-1 == 1:
-                formel_latex_rounded += fr"+ ({slope_rd[i]} \pm {round_up(f[i], rd)}) \cdot {var_x}"
-            else:
-                formel_latex_rounded += fr"+ ({slope_rd[i]} \pm {round_up(f[i], rd)}) \cdot {var_x}^{{{n-1}}}"
     
 
     # Plot
@@ -205,13 +206,55 @@ with col_1:
     ax.set_ylabel(y_Label)
     
 
+    #calculator
+    # regression calc
+    regression_n = 0
+
+    if csvf:
+        if csvf:
+            regression_formula = []
+            for regressions, axis in zip(all_plots_config, New_Plot_Arrays):
+                
+                if regressions[3] is not None:
+                    deg = regressions[3]
+                    rd = regressions[4]
+
+                    r_matrix = np.polyfit(axis[0], axis[1], deg=deg, cov=True)
+                    slope = r_matrix[0]
+                    slope_rd = np.round(slope, rd)
+                    f = np.sqrt(np.diag(r_matrix[1])) 
+
+                    #formula
+                    if deg == 1:
+                        formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}"
+                    else:
+                        formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}^{{{deg}}}"
+                    for i,n in zip(range(1,deg+1), reversed(range(0,deg+1))):
+                        if n-1 == 0:
+                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))})"   
+                        elif n-1 == 1:
+                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}"
+                        else:
+                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}^{{{n-1}}}"
+                    regression_formula.append(formel_latex_rounded)
+                    regression_n += 1
+
+                    reg_fit = np.polyval(slope, x_fit)
+                    ax.plot(x_fit, reg_fit, linestyle='--',
+                            label=f'Fit für {regressions[5]}: ${formel_latex_rounded}$')
+
+
     # Messwerte Plot
     if csvf:
         try:
-            ax.errorbar(x_Achse, y_Achse, 
-                        yerr=y_error, fmt='x', 
-                        color='red', ecolor='black', 
-                        capsize=3, label='Messwerte inkl. Fehler')
+            for plots, names in zip(New_Plot_Arrays, all_plots_config):
+                if names[6] == "Punkteplot":
+                    ax.errorbar(plots[0], plots[1],
+                                yerr=plots[2], fmt='.',
+                                ecolor='black',
+                                capsize=2, label=names[5])
+                else:
+                    ax.plot(plots[0], plots[1], label=names[5])
         except ValueError:
             st.warning("Dies ist unmöglich die Fehlerspalte, da negative Werte gefunden wurden!")
 
@@ -225,14 +268,11 @@ with col_1:
     # fit plot
     if csvf:
         if loglog:
-            ax.loglog(x_Achse, y_Achse, label='LogLog-Scale Plot der Messwerte')    
+            for plots in New_Plot_Arrays:
+                ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')    
         if histo:
             pass
-        if regression:
-            if deg is not None:
-                reg_fit = np.polyval(slope, x_fit)
-                ax.plot(x_fit, reg_fit, color='blue', linestyle='--',
-                        label=f'Fit: ${formel_latex_rounded}$')
+                
 
 # Outputspalte
 with col_2:
@@ -242,8 +282,8 @@ with col_2:
         st.pyplot(fig)
         if not X is None and not Y is None and X==Y:
             st.warning(fr"$x$ und $y$ Spaltenzahl stimmen überein, du plottest gerade $z$ gegen $z$ ($z \in header(CSV)$)")
-        if csvf and regression:
-                if deg is not None:
-                    st.subheader(fr"$\LaTeX$-Formel")
-                    st.latex(formel_latex_rounded)
-                    st.code(formel_latex_rounded)
+        if csvf:
+            for i, formulas in enumerate(regression_formula):
+                st.subheader(fr"$\LaTeX$-Formel für Regression {i+1}")
+                st.latex(formulas)
+                st.code(formulas)
