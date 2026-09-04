@@ -269,7 +269,7 @@ with col_1:
                 #ausgabe formel
                 param_values = dict(zip(params, popt))
                 fitted_expr = parsed_fit_function.subs(param_values)
-                fitted_expr_rounded = fitted_expr.evalf(3)
+                fitted_expr_rounded = fitted_expr.evalf(3),
 
                 #plot der fit funktion
                 ax.plot(axis[0], lambded_fit(axis[0], *popt), label=fr'Fit Funktion: $f(x)={latify(fitted_expr_rounded)}$')
@@ -287,9 +287,9 @@ with col_1:
                     if y_limits:
                         ax.set_ylim(bottom=under_y, top=upper_y)
                 elif names[6] == "Stemplot":
-                    ax.stem(plots[0], plots[1], label=name)
+                    ax.stem(plots[0], plots[1], label=names[5])
                 elif names[6] == "VLines":
-                    ax.vlines(x=plots[0], ymin=0, ymax=plots[1], label=name)
+                    ax.vlines(x=plots[0], ymin=0, ymax=plots[1], label=names[5])
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
 
