@@ -8,6 +8,7 @@ import pandas as pd
 import math
 import io
 import csv
+from scipy.optimize import curve_fit
 
 # Funktionen
 def latify(equation:str) -> str:
@@ -116,6 +117,7 @@ with col_1:
                     anzahl_new_plots = st.number_input("Gebe an, wie viele Kurven du brauchst:", min_value=1, max_value=n_spalten, step=1, key=z+1231123)
                     
                     new_plots = []
+                    regression_name = []
 
                     if anzahl_new_plots is not None:
                         for i in range(0,anzahl_new_plots):
@@ -135,11 +137,16 @@ with col_1:
                             if regression:
                                 deg = st.number_input("Gebe den Grad der Regression an", min_value=1, step=1, max_value=5, key=i+z+12381893132131)
                                 rd = st.number_input("Gebe die Rundung an", min_value=0, step=1, key=i+z+13213173817318)
+                                
                             else:
                                 deg = None
                                 rd = None
-                            
-                            new_plots.append([new_x_plot, new_y_plot, y_err_new, deg, rd, name_plot, point_or_line])
+                            fitter = st.checkbox("Fit-Funktion finden", key=i+z+123987198711)
+                            if fitter:
+                                fit_function = st.text_input(fr"Fit-Funktion erraten (Beispiel: $a \cdot x + \sin(b \cdot x)$ mit $a,b \in \mathbb{{R}}$)", key=i+z+99999)
+                            else:
+                                fit_function = None
+                            new_plots.append([new_x_plot, new_y_plot, y_err_new, deg, rd, name_plot, point_or_line, fit_function])
 
                     ultra_plots.append(new_plots)
             loglog = st.checkbox("LogLog-Scale", key=123871738138717380218073)
@@ -195,9 +202,6 @@ with col_1:
             upper_y = None
             under_y = None
 
-
-    
-
     # Plot
     plt.style.use(['science', 'grid'])    
     fig, ax = plt.subplots(figsize=(8,6))
@@ -211,38 +215,65 @@ with col_1:
     regression_n = 0
 
     if csvf:
-        if csvf:
-            regression_formula = []
-            for regressions, axis in zip(all_plots_config, New_Plot_Arrays):
-                
-                if regressions[3] is not None:
-                    deg = regressions[3]
-                    rd = regressions[4]
+        regression_formula = []
+        for regressions, axis in zip(all_plots_config, New_Plot_Arrays):
+            
+            if regressions[3] is not None:
+                deg = regressions[3]
+                rd = regressions[4]
 
-                    r_matrix = np.polyfit(axis[0], axis[1], deg=deg, cov=True)
-                    slope = r_matrix[0]
-                    slope_rd = np.round(slope, rd)
-                    f = np.sqrt(np.diag(r_matrix[1])) 
+                #calc
+                r_matrix = np.polyfit(axis[0], axis[1], deg=deg, cov=True)
+                slope = r_matrix[0]
+                slope_rd = np.round(slope, rd)
+                f = np.sqrt(np.diag(r_matrix[1])) 
 
-                    #formula
-                    if deg == 1:
-                        formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}"
+                #formula
+                if deg == 1:
+                    formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}"
+                else:
+                    formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}^{{{deg}}}"
+                for i,n in zip(range(1,deg+1), reversed(range(0,deg+1))):
+                    if n-1 == 0:
+                        formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))})"   
+                    elif n-1 == 1:
+                        formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}"
                     else:
-                        formel_latex_rounded = fr"{var_y}({var_x}) \approx ({latify(slope_rd[0])} \pm {latify(round_up(f[0], rd))}) \cdot {var_x}^{{{deg}}}"
-                    for i,n in zip(range(1,deg+1), reversed(range(0,deg+1))):
-                        if n-1 == 0:
-                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))})"   
-                        elif n-1 == 1:
-                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}"
-                        else:
-                            formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}^{{{n-1}}}"
-                    regression_formula.append(formel_latex_rounded)
-                    regression_n += 1
+                        formel_latex_rounded += fr"+ ({latify(slope_rd[i])} \pm {latify(round_up(f[i], rd))}) \cdot {var_x}^{{{n-1}}}"
+                regression_formula.append(formel_latex_rounded)
+                regression_n += 1
 
-                    reg_fit = np.polyval(slope, x_fit)
-                    ax.plot(x_fit, reg_fit, linestyle='--',
-                            label=f'Fit für {regressions[5]}: ${formel_latex_rounded}$')
+                reg_fit = np.polyval(slope, x_fit)
+                ax.plot(x_fit, reg_fit, linestyle='--',
+                        label=f'Lin. Reg. für {regressions[5]}: ${formel_latex_rounded}$')
 
+    # Fit Function Calc
+    if csvf:
+        for fit_func, axis in zip(all_plots_config, New_Plot_Arrays):
+            function_to_fit = fit_func[7]
+            if function_to_fit is not None and not function_to_fit == "":
+
+                # erstellung der fit funktion
+                parsed_fit_function = sp.parse_expr(function_to_fit, transformations='all', local_dict={'e': sp.E})
+                x_sym = sp.Symbol('x')
+                all_symbols = parsed_fit_function.free_symbols
+
+                # sortieren der symbole (shoutout gemini)
+                params = sorted([sym for sym in all_symbols if sym.name != 'x'], key=lambda s: s.name) 
+                lambdify_args = [x_sym] + params
+
+                #eigentlicher fit
+                lambded_fit = sp.lambdify(lambdify_args, parsed_fit_function, 'numpy')
+                popt, pcov = curve_fit(lambded_fit, axis[0], axis[1])
+
+                #ausgabe formel
+                param_values = dict(zip(params, popt))
+                fitted_expr = parsed_fit_function.subs(param_values)
+                fitted_expr_rounded = fitted_expr.evalf(3)
+
+                #plot der fit funktion
+                ax.plot(axis[0], lambded_fit(axis[0], *popt), label=fr'Fit Funktion: $f(x)={latify(fitted_expr_rounded)}$')
+                
 
     # Messwerte Plot
     if csvf:
