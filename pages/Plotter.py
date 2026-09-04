@@ -123,7 +123,7 @@ with col_1:
                         for i in range(0,anzahl_new_plots):
                             st.divider()
                             name_plot = st.text_input("Gebe den Namen der Messung an", "Messung", key=i+z+19283178318)
-                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot"], selection_mode="single", key=i+z+12318317009)
+                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot", "Stemplot"], selection_mode="single", key=i+z+12318317009)
                             st.write("Gebe die Spalten an die geplottet werden sollen")
                             new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i+z+1231)
                             new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+z+15512)
@@ -286,6 +286,8 @@ with col_1:
                                 capsize=2, label=names[5])
                     if y_limits:
                         ax.set_ylim(bottom=under_y, top=upper_y)
+                elif names[6] == "Stemplot":
+                    ax.stem(plots[0], plots[1], label=name)
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
 
