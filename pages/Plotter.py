@@ -289,7 +289,7 @@ with col_1:
                 elif names[6] == "Stemplot":
                     ax.stem(plots[0], plots[1], label=name)
                 elif names[6] == "VLines":
-                    ax.vlines(plots[0], plots[1], label=name)
+                    ax.vlines(x=plots[0], ymin=0, ymax=plots[1], label=name)
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
 
