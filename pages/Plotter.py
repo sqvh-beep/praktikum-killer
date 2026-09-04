@@ -298,7 +298,7 @@ with col_1:
 
     # Funktionenplot
     if fkt:
-        funke = sp.parse_expr(fkt, transformations='all')
+        funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E})
         f_numpy = sp.lambdify(sp.symbols(var_x), funke, 'numpy')
         y_xis = f_numpy(x_fit)
         plt.plot(x_fit, y_xis, label=fr'${latify(funke)}$')
