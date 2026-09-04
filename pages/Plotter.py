@@ -284,8 +284,11 @@ with col_1:
                                 yerr=plots[2], fmt='.',
                                 ecolor='black',
                                 capsize=2, label=names[5])
+                    if y_limits:
+                        ax.set_ylim(bottom=under_y, top=upper_y)
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
+
         except ValueError:
             st.warning("Dies ist unmöglich die Fehlerspalte, da negative Werte gefunden wurden!")
 
