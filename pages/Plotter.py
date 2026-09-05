@@ -208,10 +208,6 @@ with col_1:
     ax.set_title(name)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_Label)
-    if x_limits:
-        ax.set_xlim(xmin=under_x, xmax=upper_x)
-    if y_limits:
-        ax.set_ylim(bottom=under_y, top=upper_y)
     
 
     #calculator
@@ -288,6 +284,8 @@ with col_1:
                                 yerr=plots[2], fmt='.',
                                 ecolor='black',
                                 capsize=2, label=names[5])
+                    if y_limits:
+                        ax.set_ylim(bottom=under_y, top=upper_y)
                 elif names[6] == "Stemplot":
                     ax.stem(plots[0], plots[1], label=names[5])
                 elif names[6] == "VLines":
