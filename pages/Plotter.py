@@ -189,8 +189,8 @@ with col_1:
                 under_x = min(comparer_min)
                 upper_x = max(comparer_max)
             else:
-                under_x = 0
-                upper_x = 10
+                upper_x = None
+                under_x = None
         x_fit = np.linspace(under_x, upper_x, 1000)
 
         # Y limits
@@ -202,6 +202,7 @@ with col_1:
             upper_y = None
             under_y = None
 
+    
     # Plot
     plt.style.use(['science', 'grid'])    
     fig, ax = plt.subplots(figsize=(8,6))
@@ -212,6 +213,36 @@ with col_1:
         ax.set_xlim(xmin=under_x, xmax=upper_x)
     if y_limits:
         ax.set_ylim(bottom=under_y, top=upper_y)
+
+    with st.expander("Weitere Optionen"):
+            anzahl_punkte = st.number_input("Gebe die Anzahl der Punkte ein", min_value=0, step=1)
+            for p in range(0,anzahl_punkte):
+                x_punkt = st.number_input("Gebe die X-Koordinate an", key=p+183721837)
+                y_punkt = st.number_input("Gebe die Y-Koordinate an", key=p+198929)
+                texter = st.text_input("Annotation erstellen", "Maximum", key=p+1992292222)
+
+
+                ax.scatter(x=[x_punkt], y=[y_punkt], label=texter, colorizer='red')
+
+
+            if csv:
+                            
+                maximum = st.checkbox("Maximum markieren")
+                minimum = st.checkbox("minimum markieren")
+
+                if maximum:
+                    for n in New_Plot_Arrays:
+                        x_max = n[0][np.argmax(n[1])]
+                        y_max = n[1].max()
+
+                        ax.scatter(x=[x_max], y=[y_max], label=fr'Maximum bei $({x_max},{y_max})$ ')
+                if minimum:
+                    for n in New_Plot_Arrays:
+                        x_min = n[0][np.argmin(n[1])]
+                        y_min = n[1].min()
+
+                        ax.scatter(x=[x_min], y=[y_min], label=fr'Minimum bei $({x_min},{y_min})$')
+    
 
     #calculator
     # regression calc
