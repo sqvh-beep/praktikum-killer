@@ -10,8 +10,6 @@ import io
 import csv
 from scipy.optimize import curve_fit
 
-
-
 # Funktionen
 def latify(equation:str) -> str:
     return latex(sp.sympify(equation))
@@ -35,6 +33,21 @@ var_y = "y"
 
 ultra_plots = []
 anzahl_new_plots = None
+
+strings = fr"""
+\usepackage[utf8]{{inputenc}}
+\usepackage{{tikz}}
+\usepackage{{tikz-cd}}
+\usepackage{{pgfplots}}
+\pgfplotsset{{compat=1.14}}
+
+\begin{{figure}}[h]
+    \begin{{center}}
+        \input{{plot.pgf}}
+    \end{{center}}
+    \caption{{test von konvertierung \texttt{{matplotlib}}.}}
+\end{{figure}}
+"""
 
 # Einstellungsspalte
 with col_1:
@@ -357,6 +370,7 @@ with col_2:
         st.subheader("Plot")
         st.pyplot(fig)
 
+        st.divider()
         pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern (honestly sehr cool)")
         if pgfs:
             import matplotlib
@@ -374,7 +388,9 @@ with col_2:
                     data=file,
                     icon=":material/download:",
                     file_name="plot.pgf"
-        )
+            )
+            st.write("Hier ist noch, was du für Packages und commands du brauchst:")
+            st.code(strings, language='latex')
         
             
 
