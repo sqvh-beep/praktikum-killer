@@ -9,6 +9,14 @@ import math
 import io
 import csv
 from scipy.optimize import curve_fit
+import matplotlib
+matplotlib.use("pgf")
+matplotlib.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    'font.family': 'serif',
+    'text.usetex': True,
+    'pgf.rcfonts': False,
+})
 
 # Funktionen
 def latify(equation:str) -> str:
@@ -100,6 +108,7 @@ with col_1:
         var_x = 'x'
     else:
         fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):")
+    
 
     # csv knaller // options für messwerte
 
@@ -214,34 +223,7 @@ with col_1:
     if y_limits:
         ax.set_ylim(bottom=under_y, top=upper_y)
 
-    with st.expander("Weitere Optionen"):
-            anzahl_punkte = st.number_input("Gebe die Anzahl der Punkte ein", min_value=0, step=1)
-            for p in range(0,anzahl_punkte):
-                x_punkt = st.number_input("Gebe die X-Koordinate an", key=p+183721837)
-                y_punkt = st.number_input("Gebe die Y-Koordinate an", key=p+198929)
-                texter = st.text_input("Annotation erstellen", "Maximum", key=p+1992292222)
-
-
-                ax.scatter(x=[x_punkt], y=[y_punkt], label=texter, colorizer='red')
-
-
-            if csv:
-                            
-                maximum = st.checkbox("Maximum markieren")
-                minimum = st.checkbox("minimum markieren")
-
-                if maximum:
-                    for n in New_Plot_Arrays:
-                        x_max = n[0][np.argmax(n[1])]
-                        y_max = n[1].max()
-
-                        ax.scatter(x=[x_max], y=[y_max], label=fr'Maximum bei $({x_max},{y_max})$ ')
-                if minimum:
-                    for n in New_Plot_Arrays:
-                        x_min = n[0][np.argmin(n[1])]
-                        y_min = n[1].min()
-
-                        ax.scatter(x=[x_min], y=[y_min], label=fr'Minimum bei $({x_min},{y_min})$')
+    
     
 
     #calculator
@@ -342,14 +324,58 @@ with col_1:
                 ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')    
         if histo:
             pass
-                
 
+
+    with st.expander("Weitere Optionen"):
+        anzahl_punkte = st.number_input("Gebe die Anzahl der Punkte ein", min_value=0, step=1)
+        for p in range(0,anzahl_punkte):
+            x_punkt = st.number_input("Gebe die X-Koordinate an", key=p+183721837)
+            y_punkt = st.number_input("Gebe die Y-Koordinate an", key=p+198929)
+            texter = st.text_input("Annotation erstellen", "Maximum", key=p+1992292222)
+
+
+            ax.scatter(x=[x_punkt], y=[y_punkt], label=texter, colorizer='red')
+
+
+        if csv:
+                        
+            maximum = st.checkbox("Maximum markieren")
+            minimum = st.checkbox("minimum markieren")
+
+            if maximum:
+                for n in New_Plot_Arrays:
+                    x_max = n[0][np.argmax(n[1])]
+                    y_max = n[1].max()
+
+                    ax.scatter(x=[x_max], y=[y_max], label=fr'Maximum bei $({x_max},{y_max})$', marker="x", facecolor='red')
+            if minimum:
+                for n in New_Plot_Arrays:
+                    x_min = n[0][np.argmin(n[1])]
+                    y_min = n[1].min()
+
+                    ax.scatter(x=[x_min], y=[y_min], label=fr'Minimum bei $({x_min},{y_min})$', marker="x", facecolor='red')
+
+        
 # Outputspalte
 with col_2:
     ax.legend()
     if fkt or csvf:
         st.subheader("Plot")
         st.pyplot(fig)
+
+        pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern")
+        if pgfs:
+            plt.savefig('plot.pgf')
+            with open("plot.pgf", "rb") as file:
+                st.download_button(
+                    label="Download PGF",
+                    data=file,
+                    icon=":material/download:",
+                    file_name="plot.pgf"
+        )
+        
+            
+
         if not X is None and not Y is None and X==Y:
             st.warning(fr"$x$ und $y$ Spaltenzahl stimmen überein, du plottest gerade $z$ gegen $z$ ($z \in header(CSV)$)")
         if csvf:
