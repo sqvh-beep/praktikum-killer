@@ -10,6 +10,7 @@ import io
 import csv
 from scipy.optimize import curve_fit
 
+
 # Funktionen
 def latify(equation:str) -> str:
     return latex(sp.sympify(equation))
@@ -391,11 +392,8 @@ with col_2:
             )
             st.write("Hier ist noch, was du für Packages und commands du brauchst:")
             st.code(strings, language='latex')
-        
+        st.divider()
             
-
-        if not X is None and not Y is None and X==Y:
-            st.warning(fr"$x$ und $y$ Spaltenzahl stimmen überein, du plottest gerade $z$ gegen $z$ ($z \in header(CSV)$)")
         if csvf:
             for i, formulas in enumerate(regression_formula):
                 st.subheader(fr"$\LaTeX$-Formel für Regression {i+1}")
