@@ -10,8 +10,6 @@ import io
 import csv
 from scipy.optimize import curve_fit
 
-
-
 # Funktionen
 def latify(equation:str) -> str:
     return latex(sp.sympify(equation))
