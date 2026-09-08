@@ -10,6 +10,8 @@ import io
 import csv
 from scipy.optimize import curve_fit
 
+
+
 # Funktionen
 def latify(equation:str) -> str:
     return latex(sp.sympify(equation))
@@ -45,7 +47,7 @@ strings = fr"""
     \begin{{center}}
         \input{{plot.pgf}}
     \end{{center}}
-    \caption{{test von konvertierung \texttt{{matplotlib}}.}}
+    \caption{{Konvertierter Plot aus \texttt{{matplotlib}} (Hier kommt deine Caption hin).}}
 \end{{figure}}
 """
 
