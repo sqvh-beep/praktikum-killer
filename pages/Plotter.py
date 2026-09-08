@@ -96,8 +96,8 @@ with col_1:
                 st.stop()
             try:
                 dataframes.append(lf)
-            except:
-                pass
+            except Exception as e:
+                st.error(f"Fehler: {e}")
             namensliste.append(n.name)
             # --------------------------------------- CSV READER E (CHATGPT)-------------------------------------------------
 
@@ -231,8 +231,6 @@ with col_1:
         ax.set_ylim(bottom=under_y, top=upper_y)
 
     
-    
-
     #calculator
     # regression calc
     regression_n = 0
@@ -341,10 +339,10 @@ with col_1:
             texter = st.text_input("Annotation erstellen", "Maximum", key=p+1992292222)
 
 
-            ax.scatter(x=[x_punkt], y=[y_punkt], label=texter, colorizer='red')
+            ax.scatter(x=[x_punkt], y=[y_punkt], label=texter, color='red')
 
 
-        if csv:
+        if csvf:
                         
             maximum = st.checkbox("Maximum markieren")
             minimum = st.checkbox("minimum markieren")
@@ -373,6 +371,8 @@ with col_2:
         st.divider()
         pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern (honestly sehr cool)")
         if pgfs:
+            buf = io.BytesIO()
+
             import matplotlib
             matplotlib.use("pgf")
             matplotlib.rcParams.update({
@@ -381,11 +381,11 @@ with col_2:
                 'text.usetex': True,
                 'pgf.rcfonts': False,
             })
-            plt.savefig('plot.pgf')
+            plt.savefig(buf, format="pgf")
             with open("plot.pgf", "rb") as file:
                 st.download_button(
                     label="Download PGF",
-                    data=file,
+                    data=buf.getvalue(),
                     icon=":material/download:",
                     file_name="plot.pgf"
             )
