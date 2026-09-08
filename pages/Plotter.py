@@ -9,7 +9,7 @@ import math
 import io
 import csv
 from scipy.optimize import curve_fit
-import matplotlib
+
 
 
 # Funktionen
@@ -357,8 +357,9 @@ with col_2:
         st.subheader("Plot")
         st.pyplot(fig)
 
-        pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern")
+        pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern (honestly sehr cool)")
         if pgfs:
+            import matplotlib
             matplotlib.use("pgf")
             matplotlib.rcParams.update({
                 "pgf.texsystem": "pdflatex",
