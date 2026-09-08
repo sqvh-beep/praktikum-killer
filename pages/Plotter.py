@@ -189,8 +189,8 @@ with col_1:
                 under_x = min(comparer_min)
                 upper_x = max(comparer_max)
             else:
-                upper_x = None
-                under_x = None
+                upper_x = 0
+                under_x = 10
         x_fit = np.linspace(under_x, upper_x, 1000)
 
         # Y limits
@@ -303,7 +303,7 @@ with col_1:
                 #ausgabe formel
                 param_values = dict(zip(params, popt))
                 fitted_expr = parsed_fit_function.subs(param_values)
-                fitted_expr_rounded = fitted_expr.evalf(3),
+                fitted_expr_rounded = fitted_expr.evalf(2),
 
                 #plot der fit funktion
                 ax.plot(axis[0], lambded_fit(axis[0], *popt), label=fr'Fit Funktion: $f(x)={latify(fitted_expr_rounded)}$')
