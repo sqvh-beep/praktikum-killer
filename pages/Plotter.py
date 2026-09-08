@@ -10,13 +10,7 @@ import io
 import csv
 from scipy.optimize import curve_fit
 import matplotlib
-matplotlib.use("pgf")
-matplotlib.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    'font.family': 'serif',
-    'text.usetex': True,
-    'pgf.rcfonts': False,
-})
+
 
 # Funktionen
 def latify(equation:str) -> str:
@@ -365,6 +359,13 @@ with col_2:
 
         pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern")
         if pgfs:
+            matplotlib.use("pgf")
+            matplotlib.rcParams.update({
+                "pgf.texsystem": "pdflatex",
+                'font.family': 'serif',
+                'text.usetex': True,
+                'pgf.rcfonts': False,
+            })
             plt.savefig('plot.pgf')
             with open("plot.pgf", "rb") as file:
                 st.download_button(
