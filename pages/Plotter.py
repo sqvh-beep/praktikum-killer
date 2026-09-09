@@ -42,10 +42,11 @@ strings = fr"""
 \usepackage{{pgfplots}}
 \pgfplotsset{{compat=1.14}}
 
-\begin{{figure}}[h]
-    \begin{{center}}
+\begin{{figure}}[H]
+    \centering
+    \resizebox{{0.7\textwidth}}{{!}}{{
         \input{{plot.pgf}}
-    \end{{center}}
+    }}
     \caption{{Konvertierter Plot aus \texttt{{matplotlib}} (Hier kommt deine Caption hin).}}
 \end{{figure}}
 """
@@ -321,7 +322,7 @@ with col_1:
         funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E})
         f_numpy = sp.lambdify(sp.symbols(var_x), funke, 'numpy')
         y_xis = f_numpy(x_fit)
-        plt.plot(x_fit, y_xis, label=fr'${latify(funke)}$')
+        plt.plot(x_fit, y_xis, label=fr'$P(x) = {latify(funke)}$')
 
     # fit plot
     if csvf:
