@@ -292,10 +292,10 @@ with col_1:
                 #ausgabe formel
                 param_values = dict(zip(params, popt))
                 fitted_expr = parsed_fit_function.subs(param_values)
-                fitted_expr_rounded = fitted_expr.evalf(2),
+                fitted_expr_rounded = fitted_expr.evalf(2)
 
                 #plot der fit funktion
-                ax.plot(axis[0], lambded_fit(axis[0], *popt), label=fr'Fit Funktion: $f(x)={latify(fitted_expr_rounded)}$')
+                ax.plot(axis[0], lambded_fit(axis[0], *popt), label=fr'Fit Funktion: ${var_y}({var_x})={latify(fitted_expr_rounded)}$')
                 
 
     # Messwerte Plot
@@ -319,10 +319,10 @@ with col_1:
 
     # Funktionenplot
     if fkt:
-        funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E})
+        funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E, 'arctan': sp.atan, 'arccos': sp.acos, 'arcsin': sp.asin})
         f_numpy = sp.lambdify(sp.symbols(var_x), funke, 'numpy')
         y_xis = f_numpy(x_fit)
-        plt.plot(x_fit, y_xis, label=fr'$P(x) = {latify(funke)}$')
+        plt.plot(x_fit, y_xis, label=fr'${var_y}({var_x}) = {latify(funke)}$')
 
     # fit plot
     if csvf:
