@@ -384,8 +384,8 @@ with col_2:
                 'text.usetex': True,
                 'pgf.rcfonts': False,
             })
-            plt.savefig(fr"{buf}", format="pgf")
-            with open(buf, "rb") as file:
+            plt.savefig(buf, format="pgf")
+            with open(fr"{buf}", "rb") as file:
                 st.download_button(
                     label="Download PGF",
                     data=buf.getvalue(),
