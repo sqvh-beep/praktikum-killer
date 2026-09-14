@@ -330,8 +330,7 @@ with col_1:
             for plots in New_Plot_Arrays:
                 ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')    
         if histo:
-            for plots in New_Plot_Arrays:
-                ax.hist(plots[0], label='Histogramm Darstellung')
+            pass
 
 
     with st.expander("Weitere Optionen"):
@@ -374,8 +373,6 @@ with col_2:
         st.divider()
         pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern (honestly sehr cool)")
         if pgfs:
-            buf = io.BytesIO()
-
             import matplotlib
             matplotlib.use("pgf")
             matplotlib.rcParams.update({
@@ -384,11 +381,11 @@ with col_2:
                 'text.usetex': True,
                 'pgf.rcfonts': False,
             })
-            plt.savefig(buf, format="pgf")
-            with open(fr"{buf}", "rb") as file:
+            plt.savefig('plot.pgf', format="pgf")
+            with open("plot.pgf", "rb") as file:
                 st.download_button(
                     label="Download PGF",
-                    data=buf.getvalue(),
+                    data=file,
                     icon=":material/download:",
                     file_name="plot.pgf"
             )
