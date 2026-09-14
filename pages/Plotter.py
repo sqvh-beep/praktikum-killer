@@ -330,7 +330,8 @@ with col_1:
             for plots in New_Plot_Arrays:
                 ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')    
         if histo:
-            pass
+            for plots in New_Plot_Arrays:
+                ax.histo(plots[0], label='Histogramm Darstellung')
 
 
     with st.expander("Weitere Optionen"):
