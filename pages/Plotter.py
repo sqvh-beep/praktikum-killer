@@ -112,11 +112,17 @@ with col_1:
     var_y = st.text_input("Gebe deine $y$-Variable an ($A$, $F$, $R$, etc.)")
     if var_y == "" or var_y == "y":
         var_y = 'y'
-    if var_x == "x" or var_x == "":
-        fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist $x$):")
-        var_x = 'x'
-    else:
-        fkt = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):")
+
+    with st.expander("Plot von Funktionen"):
+        n_Funktionen = st.number_input("Gebe die Anzahl der Funktionen ein die du plotten willst", min_value=1, step=1)
+        funktionenliste = []
+        for anzahl in range(0, n_Funktionen):
+            if var_x == "x" or var_x == "":
+                funktionenplot = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist $x$):", key=anzahl*12372+10293712)
+                var_x = 'x'
+                funktionenliste.append(funktionenplot)
+            else:
+                funktionenplot = st.text_input(f"Gib eine Funktion zum Plotten ein (deine Variable ist ${var_x}$):", key=anzahl*123721299999999+102923712)
     
 
     # csv knaller // options für messwerte
@@ -141,7 +147,7 @@ with col_1:
                         for i in range(0,anzahl_new_plots):
                             st.divider()
                             name_plot = st.text_input("Gebe den Namen der Messung an", "Messung", key=i+z+19283178318)
-                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot", "Stemplot", "VLines"], selection_mode="single", key=i+z+12318317009)
+                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot", "Stemplot", "VLines", "Histo"], selection_mode="single", key=i+z+12318317009)
                             st.write("Gebe die Spalten an die geplottet werden sollen")
                             new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i+z+1231)
                             new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+z+15512)
@@ -168,7 +174,6 @@ with col_1:
 
                     ultra_plots.append(new_plots)
             loglog = st.checkbox("LogLog-Scale", key=123871738138717380218073)
-            histo = st.checkbox("Histogramm darstellung", key=1983218967378193728913879)
 
         else:
             st.warning("Lade erst eine CSV Datei hoch")
@@ -311,6 +316,8 @@ with col_1:
                     ax.stem(plots[0], plots[1], label=names[5])
                 elif names[6] == "VLines":
                     ax.vlines(x=plots[0], ymin=0, ymax=plots[1], label=names[5])
+                elif names[6] == "Histo":
+                    ax.hist(plots[0], label=names[5])
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
 
@@ -318,19 +325,20 @@ with col_1:
             st.warning("Dies ist unmöglich die Fehlerspalte, da negative Werte gefunden wurden!")
 
     # Funktionenplot
-    if fkt:
-        funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E, 'arctan': sp.atan, 'arccos': sp.acos, 'arcsin': sp.asin})
-        f_numpy = sp.lambdify(sp.symbols(var_x), funke, 'numpy')
-        y_xis = f_numpy(x_fit)
-        plt.plot(x_fit, y_xis, label=fr'${var_y}({var_x}) = {latify(funke)}$')
+    if funktionenplot:
+        for fkt in funktionenliste:
+            funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E, 'arctan': sp.atan, 'arccos': sp.acos, 'arcsin': sp.asin})
+            f_numpy = sp.lambdify(sp.symbols(var_x), sp.simplify(funke), 'numpy')
+            y_xis = f_numpy(x_fit)
+            if not np.shape(x_fit) == np.shape(y_xis):
+                y_xis = np.full(x_fit.size, f_numpy(x_fit))
+            plt.plot(x_fit, y_xis, label=fr'${var_y}({var_x}) = {latify(funke)}$')
 
     # fit plot
     if csvf:
         if loglog:
             for plots in New_Plot_Arrays:
-                ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')    
-        if histo:
-            pass
+                ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')
 
 
     with st.expander("Weitere Optionen"):
@@ -366,10 +374,9 @@ with col_1:
 # Outputspalte
 with col_2:
     ax.legend()
-    if fkt or csvf:
+    if funktionenplot or csvf:
         st.subheader("Plot")
         st.pyplot(fig)
-
         st.divider()
         pgfs = st.checkbox(fr"Als PGF für $\LaTeX$ speichern (honestly sehr cool)")
         if pgfs:
