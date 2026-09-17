@@ -147,7 +147,9 @@ with col_1:
                         for i in range(0,anzahl_new_plots):
                             st.divider()
                             name_plot = st.text_input("Gebe den Namen der Messung an", "Messung", key=i+z+19283178318)
-                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot", "Stemplot", "VLines", "Histo"], selection_mode="single", key=i+z+12318317009)
+                            point_or_line = st.segmented_control("Auswahl", ["Punkteplot", "Lineplot", "Stemplot", "VLines", "Histo", "Balken"], selection_mode="single", key=i+z+12318317009)
+                            if point_or_line == "Histo":
+                                histo_bins = st.slider("Anzahl der Bins", min_value=5, max_value=100, value=20, key=i+z+888)
                             st.write("Gebe die Spalten an die geplottet werden sollen")
                             new_x_plot = st.number_input("Spaltenzahl für $x$-Values", min_value=1, max_value=n_spalten, step=1, key=i+z+1231)
                             new_y_plot = st.number_input("Spaltenzahl für $y$-Values", min_value=1, max_value=n_spalten, step=1, key =i+z+15512)
@@ -174,6 +176,7 @@ with col_1:
 
                     ultra_plots.append(new_plots)
             loglog = st.checkbox("LogLog-Scale", key=123871738138717380218073)
+            log_y = st.checkbox("SemiLogY-Scale", key=120398210938903890189302189032190832189038901389013980)
 
         else:
             st.warning("Lade erst eine CSV Datei hoch")
@@ -232,6 +235,7 @@ with col_1:
     ax.set_title(name)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_Label)
+    
     if x_limits:
         ax.set_xlim(xmin=under_x, xmax=upper_x)
     if y_limits:
@@ -317,7 +321,9 @@ with col_1:
                 elif names[6] == "VLines":
                     ax.vlines(x=plots[0], ymin=0, ymax=plots[1], label=names[5])
                 elif names[6] == "Histo":
-                    ax.hist(plots[0], label=names[5])
+                    ax.hist(plots[0], label=names[5], edgecolor='black', alpha=0.9, bins=histo_bins)
+                elif names[6] == "Balken":
+                    ax.bar(plots[0], plots[1], label=names[5], edgecolor='black')
                 else:
                     ax.plot(plots[0], plots[1], label=names[5])
 
@@ -327,7 +333,7 @@ with col_1:
     # Funktionenplot
     if funktionenplot:
         for fkt in funktionenliste:
-            funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E, 'arctan': sp.atan, 'arccos': sp.acos, 'arcsin': sp.asin})
+            funke = sp.parse_expr(fkt, transformations='all', local_dict={'e': sp.E, 'arctan': sp.atan, 'arccos': sp.acos, 'arcsin': sp.asin, f'{var_x}': sp.Symbol(f'{var_x}')})
             f_numpy = sp.lambdify(sp.symbols(var_x), sp.simplify(funke), 'numpy')
             y_xis = f_numpy(x_fit)
             if not np.shape(x_fit) == np.shape(y_xis):
@@ -339,6 +345,9 @@ with col_1:
         if loglog:
             for plots in New_Plot_Arrays:
                 ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')
+        if log_y:
+            for plots in New_Plot_Arrays:
+                ax.semilogy(plots[0], plots[1], label='SemiLogY-Plot')
 
 
     with st.expander("Weitere Optionen"):
