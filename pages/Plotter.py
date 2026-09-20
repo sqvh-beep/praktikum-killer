@@ -278,7 +278,7 @@ with col_1:
 
                 reg_fit = np.polyval(slope, x_fit)
                 ax.plot(x_fit, reg_fit, linestyle='--',
-                        label=f'Lin. Reg. für {regressions[5]}: ${formel_latex_rounded}$')
+                        label=f'Reg. für {regressions[5]}: ${formel_latex_rounded}$')
 
     # Fit Function Calc
     if csvf:
