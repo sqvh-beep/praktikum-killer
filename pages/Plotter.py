@@ -348,10 +348,10 @@ with col_1:
                 ax.loglog(plots[0], plots[1], label='LogLog-Scale Plot')
         if log_y:
             for plots in New_Plot_Arrays:
-                ax.semilogy(plots[0], plots[1], label='SemiLogY-Plot')
+                plt.yscale('log')
         if log_x:
             for plots in New_Plot_Arrays:
-                ax.semilogx(plots[0], plots[1], label='SemiLogY-Plot')
+                plt.xscale('log')
 
 
     with st.expander("Weitere Optionen"):
