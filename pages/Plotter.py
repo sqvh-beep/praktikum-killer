@@ -177,6 +177,7 @@ with col_1:
                     ultra_plots.append(new_plots)
             loglog = st.checkbox("LogLog-Scale", key=123871738138717380218073)
             log_y = st.checkbox("SemiLogY-Scale", key=120398210938903890189302189032190832189038901389013980)
+            log_x = st.checkbox("SemiLogX-Scale", key=19237777377737773)
 
         else:
             st.warning("Lade erst eine CSV Datei hoch")
@@ -348,6 +349,9 @@ with col_1:
         if log_y:
             for plots in New_Plot_Arrays:
                 ax.semilogy(plots[0], plots[1], label='SemiLogY-Plot')
+        if log_x:
+            for plots in New_Plot_Arrays:
+                ax.semilogx(plots[0], plots[1], label='SemiLogY-Plot')
 
 
     with st.expander("Weitere Optionen"):
