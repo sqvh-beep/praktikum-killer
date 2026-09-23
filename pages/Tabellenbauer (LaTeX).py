@@ -83,7 +83,7 @@ if file is not None:
         spalten = lf.columns.tolist()
 
         #Kopfspalte
-        table = fr"\begin{{table}}[h] \caption{{Caption}} \label{{Tab_1}} \begin{{center}} \begin{{tabular}}" fr"{{" fr"{spaltenzahl}" fr"}}" "\n" fr"\toprule" "\n"
+        table = fr"\begin{{table}}[H] \caption{{Caption}} \label{{Tab_1}} \begin{{center}} \begin{{tabular}}" fr"{{" fr"{spaltenzahl}" fr"}}" "\n" fr"\toprule" "\n"
         for l in range(0, n_g):
             if l == n_g-1:
                 table += fr" {spalten[l]}"
